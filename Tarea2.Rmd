@@ -1,0 +1,24 @@
+---
+title: "Tarea 2 - Estadística Actuarial II"
+author: 
+  - Estudiantes
+  - Luis Fernando Amey Apuy - C20470
+  - Javier Antonio Hernández Navarro - C13674
+  - Sofía Bocker Brenes - C11102
+date: "`r Sys.Date()`"
+output: 
+  rmdformats::downcute:
+    default_style: "dark"
+    downcute_theme: "chaos"
+---
+
+# Librerías
+
+```{r}
+# install.packages("pacman")
+pacman::p_load(
+  ggplot2, 
+  lubridate,
+  tidyverse
+)
+```
