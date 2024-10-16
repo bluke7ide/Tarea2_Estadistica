@@ -18,7 +18,8 @@ output:
 pacman::p_load(
   ggplot2, 
   lubridate,
-  tidyverse
+  tidyverse,
+  plotly
 )
 ```
 
@@ -57,40 +58,72 @@ Indique el valor estimado de $\lambda$, utilizando el algoritmo de Aceptación y
 mas_acc_lab <- c(2.72, 1.93, 1.76, 0.49, 6.12, 0.43, 4.01, 1.71, 2.01, 5.96)
 s_acc_lab <- sum(mas_acc_lab)
 n_acc_lab <- length(mas_acc_lab)
+m_acc_lab <- s_acc_lab/n_acc_lab
+```
+
+Puesto así, nuestra función a posteriori de $\lambda$ es una $\Gamma(12, 28.14)$
+
+Al maximizar nuestra función $\frac{f(x)}{g(x)}$, tomando a $g \sim exp(1)$
+```{r}
+maxc <- 10/27.14
+c <- dgamma(maxc, 11, 27.14)
 ```
 
 ```{r}
-U<-runif(10^4)
-x<-runif(10^4,0,1)
-ngen=length(x)
-dbeta1=Vectorize(function(x) (20*x*(1-x)^3))
-DIB<-dbeta1(x)
+U <- runif(10^4)
+x <- rexp(10^4,1)
+ngen <- length(x)
+dgamma1 <- Vectorize(function(x) dgamma(x, 11, 27.14))
+DIB <- dgamma1(x)
 for(i in 1:10^4){
-  while((U[i]*m*1) >= (DIB[i])){ #sustituyo las rechazadas
-    U[i]=runif(1)
-    x[i]=runif(1)
-    DIB[i]<-dbeta1(x[i])
-    ngen=ngen+1
+  while((U[i]*c) >= (DIB[i])){ 
+    U[i] <- runif(1)
+    x[i] <- rexp(1)
+    DIB[i] <- dgamma1(x[i])
+    ngen <- ngen+1
   }
 }
-
-ValorRes=dbeta1(x)
-
+(lambda <- mean(x))
 ```
-
-
 
 ## b) Distribución de 𝜆
 Construya el histograma para la distribución de $\lambda$
 
+```{r}
+fig <- ggplot(data.frame(x = x), aes(x = x)) +
+  geom_histogram(aes(y = after_stat(density), color = "Histograma"), bins = 40, fill = "lightblue", alpha = 0.5) +
+  stat_function(fun = function(x) dgamma(x, 11, 28.14), aes(color = "Densidad Teórica"), size = 1.5) +
+  labs(title = "Histograma de Lambda", x = "x", y = "Density", color = "Leyenda", fill = " ") +
+  scale_color_manual(values = c("cyan", "black")) +
+  theme(legend.position = 'bottom') +
+  theme_minimal() 
+fig %>% ggplotly()
+```
+
+
 ## c) Generaciones
 Indique el número de generaciones, número medio de generaciones y proporción de rechazos de la estimación realizada
+
+```{r}
+{cat("Número de generaciones = ", ngen)
+cat("\nNúmero medio de aceptados = ", ngen/10^4)
+cat("\nProporción de rechazos = ", 1-10^4/ngen, "\n")}
+```
 
 ## d) Intervalo de credibilidad
 Determine un intervalo de credibilidad al 99% para el parámetro $\lambda$ estimado
 
+```{r}
+quantile(x, c(0.005, 0.995))
+```
+
 ## e) Hipótesis
 Aceptaría o rechazaría la hipótesis que $\lambda = 0.5$, basados en el intervalo de credibilidad anterior. 
+
+Podemos aceptar esta hipótesis ya que se encuentra dentro del intervalo de credibilidad anterior. Solo la rechazamos cuando tenemos un intervalo de credibilidad de 75%
+```{r}
+quantile(x, c(0.175, 0.825))
+```
 
 # Pregunta 4
 Sea $f(x) = \exp\left(\frac{\sin(10x)}{10\cos(x)}\right)$, para $x \in [0,10]$
