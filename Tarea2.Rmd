@@ -131,8 +131,50 @@ Sea $f(x) = \exp\left(\frac{\sin(10x)}{10\cos(x)}\right)$, para $x \in [0,10]$
 ## a) Algoritmo de recalentamiento simulado
 Utilizando el algoritmo de recalentamiento simulado estime el mínimo global en [0,10], con valor inicial en 5
 
+```{r}
+resim <- function(f, alpha=0.5, s0=0, niter,mini=-Inf,maxi=Inf) {
+  s_n <- s0
+  estados<-rep(0,niter)
+  iter_count <- 0
+  for (k in 1:niter) {
+    estados[k]<-s_n
+    T <- (1 - alpha)^k
+    s_new <- rnorm(1, s_n, 1)
+    if(s_new<mini){s_new=mini}
+    if(s_new>maxi){s_new=maxi}
+    dif <- f(s_new) - f(s_n)
+    if (dif < 0) {
+      s_n = s_new
+    } else {
+      random <- runif(1,0,1)
+      if (random < exp(-dif/T)) {
+      s_n <- s_new
+      }
+    }
+    iter_count <- iter_count + 1
+  }
+  return(list(r=s_n,e=estados))
+}
+```
+
+
+```{r}
+f <- function(x) exp(sin(10*x)/(10*cos(x)))
+Resultado <-resim(f,0.1,5,10000,0,10) # 10e3 puesto se quedaba varado en algunas
+Resultado$r
+```
+
+
 ## b) Gráfico de estados 
 Grafique el resultado de los estados donde estuvo la cadena de la estimación del punto a.
+
+```{r, echo=FALSE}
+par(mfrow = c(1, 2))
+plot(f, xlim = c(0, 10))
+plot(Resultado$e)
+par(mfrow = c(1, 1))
+```
+
 
 # Pregunta 5
 Dada una muestra de siniestros observados por periodo:
