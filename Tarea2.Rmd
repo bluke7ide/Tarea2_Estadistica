@@ -179,21 +179,112 @@ par(mfrow = c(1, 1))
 # Pregunta 5
 Dada una muestra de siniestros observados por periodo:
 $$4,2,5,6,3,4,7,5,6,4$$
-Suponemos que el número de siniestros en cada periodo sigue una distribución de Poisson con un parámetro $\lambda$. Queremos estimar el parámetro $\lambda$ usando el Algoritmo de Metropolis-Hastings, usaremos como función a priori de $\lambda$ una distribución gamma de parámetros (3,2)
+Suponemos que el número de siniestros en cada periodo sigue una distribución de Poisson con un parámetro $\lambda$. Queremos estimar el parámetro $\lambda$ usando el Algoritmo de *Metropolis-Hastings*, usaremos como función a priori de $\lambda$ una distribución gamma de parámetros (3,2)
 
 ## a) Algoritmo de Metropolis-Hastings
 Construya un algoritmo de Metropolis-Hastings que muestree el parámetro $\lambda$, a partir de los datos suministrados con $n = 10^4$
 
-## b) Traceplot
+```{r}
+# Muestra de siniestros observados
+siniestros <- c(4, 2, 5, 6, 3, 4, 7, 5, 6, 4)
+
+# Parámetros para la función Gamma (priori)
+alpha <- 3
+beta <- 2
+
+# Función de densidad de Poisson para los siniestros
+verosimilitud_log <- function(lambda, datos) {
+  sum(dpois(datos, lambda, log = TRUE))
+}
+
+# Función de densidad de la priori Gamma
+priori_log <- function(lambda) {
+  dgamma(lambda, shape = alpha, rate = beta, log = TRUE)
+}
+
+# Función posterior
+posterior_log <- function(lambda, datos) {
+  verosimilitud_log(lambda, datos) + priori_log(lambda)
+}
+
+# Algoritmo de Metropolis-Hastings
+metropolis_hastings <- function(datos, n_iteraciones = 10000) {
+  cadena_lambda <- numeric(n_iteraciones)
+  cadena_lambda[1] <- runif(1, min = min(datos), max = max(datos))
+  aceptaciones <- 0
+  
+  for (i in 2:n_iteraciones) {
+    lambda_actual <- cadena_lambda[i - 1]
+    lambda_propuesto <- rnorm(1, mean = lambda_actual, sd = 1)
+    
+    if (lambda_propuesto > 0) {
+      log_alpha <- posterior_log(lambda_propuesto, datos) - posterior_log(lambda_actual, datos)
+      alpha <- exp(log_alpha)
+      
+      if (runif(1) < alpha) {
+        cadena_lambda[i] <- lambda_propuesto
+        aceptaciones <- aceptaciones + 1
+      } else {
+        cadena_lambda[i] <- lambda_actual
+      }
+    } else {
+      cadena_lambda[i] <- lambda_actual
+    }
+  }
+  
+  list(cadena = cadena_lambda, tasa_aceptacion = aceptaciones / n_iteraciones)
+}
+
+# Ejecuta el algoritmo con n = 10000
+resultado <- metropolis_hastings(siniestros, n_iteraciones = 10000)
+cadena_lambda <- resultado$cadena
+tasa_aceptacion <- resultado$tasa_aceptacion
+```
+
+
+## b) Histograma
+Grafique la distribución (histograma) de la muestra MCMC del algoritmo.
+
+```{r}
+hist(cadena_lambda, breaks = 50, freq = FALSE, 
+     main = "Histograma de lambda (MCMC)", 
+     xlab = expression(lambda), col = "salmon")
+```
+
+
+## c) Traceplot
 Gráfique el Traceplot de muestra MCMC del algoritmo
 
-## c) Autocorrelación
+```{r}
+plot(cadena_lambda, type = "l", 
+     main = "Traceplot de la muestra MCMC", 
+     ylab = expression(lambda), xlab = "Iteraciones")
+```
+
+
+## d) Autocorrelación
 El gráfico de Autocorrelación de la muestra MCMC del algoritmo.
 
-## d) Convergencia de la media
+```{r}
+acf(cadena_lambda, main = "Autocorrelación de la muestra MCMC")
+```
+
+
+## e) Convergencia de la media
 El gráfico de la convergencia (promedios ergódicos) de la media de la muestra MCMC del algoritmo.
 
-## e) Aceptación
+```{r}
+promedios <- cumsum(cadena_lambda) / (1:length(cadena_lambda))
+plot(promedios, type = "l", 
+     main = "Convergencia (Promedios ergódicos)", 
+     ylab = "Promedio acumulado de lambda", xlab = "Iteraciones")
+```
+
+
+## f) Aceptación
 La tasa de aceptación del algoritmo.
 
+```{r}
+cat("Tasa de aceptación:", tasa_aceptacion)
+```
 
