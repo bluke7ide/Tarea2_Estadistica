@@ -30,6 +30,51 @@ Usando un Algoritmo de Integración por Montecarlo estime la siguiente integral:
 $$\int_0^1 \dfrac{e^{-x^2}}{1+x^2} \ dx$$ 
 Usando la función _integrate_ de R, estime que el error de aproximación sea menor a $10^{-3}$, y muéstrelo, esta función integrate utiliza el método de Simpson
 
+```{r}
+# Algoritmo integración por Montecarlo
+
+# Se establece una semilla
+set.seed(2024)
+# Se escoge un tamaño de muestra
+n <- 10^4
+# Se establece una distribución uniforme en el intevalo [0,1]
+U <- runif(n,0,1)
+
+# Se define la función f
+f <- Vectorize(function(x) (exp(-x^2))/(1+x^2))
+
+# Se genera un vector para cada observación
+Y <- 1*f(U)
+
+# Se estima la integral por medio del método Montecarlo
+integral_montecarlo <- 1*sum(Y)/n
+
+# Se imprime estimación
+print(c('Estimación de Integración Montecarlo:', integral_montecarlo))
+
+```
+
+Se estima el error usando la función integrate de R (la cual utiliza el método de Simpson):
+
+```{r}
+integral_simpson <- integrate(f, 0, 1)
+print('Estimación de Integración por Simpson:')
+integral_simpson
+
+# Se calcula el error
+error <- abs(integral_simpson$value - integral_montecarlo)
+
+print(c('Error de aproximación:', error))
+
+```
+
+Se puede observar que el error de aproximación es menor a 10^(-3). Se grafica para analizar la convergencia:
+
+```{r}
+acumulado<-cumsum(Y)/(1:n)
+plot(1:n,acumulado,col="blue",type="l",ylab="Aproximación",xlab="Iteraciones")
+abline(h=integral_simpson$value,col="red",lwd=1)
+```
 
 # Pregunta 2
 
@@ -45,6 +90,37 @@ Programe la función de pérdida $f_L(L)$ según el enunciado
 Para muestrear valores extremos de nuestra muestra, podemos usar una distribución auxiliar
 $$g(L) \sim N(3,4)$$
 Implemente un muestreo por importancia con esta función auxiliar, para $n = 10^4$ e indique el valor esperado de la pérdida de los valores extremos, usando como semilla _set.seed(54321)_
+
+```{r}
+# Datos dados en el enunciado
+set.seed(54321)
+
+n <- 10^4
+
+# Generar la muestra aleatoria de los valores según la densidad auxiliar
+A <- rnorm(n, mean = 3, sd = 2)
+A <- A[A>0]
+
+n <- length(A)
+
+# Función de pérdida f_L(L) según el enunciado
+f_L <- Vectorize(function(L) ifelse(L >= 0, exp(-L), 0))
+
+# Función de densidad auxiliar g_L(L) de la normal N(3, 2^2)
+g_L <- Vectorize(function(L) dnorm(L, mean = 3, sd = 2))
+
+# Función de importancia 
+h <- Vectorize(function(L) (L * f_L(L)) / g_L(L))
+
+# Aplicar la función de importancia a las muestras generadas
+Y2 <- h(A)
+
+# Obtener resultado 
+valor_esperado <- mean(Y2)
+
+# Mostrar el resultado
+print(c("Valor esperado de la pérdida de los valores extremos:", valor_esperado))
+```
 
 # Pregunta 3
 La siguiente muestra indica el tiempo en días entre cada accidente laboral de una empresa:
