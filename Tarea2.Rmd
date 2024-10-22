@@ -268,23 +268,23 @@ siniestros <- c(4, 2, 5, 6, 3, 4, 7, 5, 6, 4)
 alpha <- 3
 beta <- 2
 
+# Función de densidad de la priori Gamma
+log_priori <- function(lambda) {
+  dgamma(lambda, shape = alpha_p, rate = (1 / beta), log = TRUE)
+}
+
 # Función de densidad de Poisson para los siniestros
-verosimilitud_log <- function(lambda, datos) {
+log_verosimilitud <- function(datos, lambda) {
   sum(dpois(datos, lambda, log = TRUE))
 }
 
-# Función de densidad de la priori Gamma
-priori_log <- function(lambda) {
-  dgamma(lambda, shape = alpha, rate = beta, log = TRUE)
-}
-
 # Función posterior
-posterior_log <- function(lambda, datos) {
-  verosimilitud_log(lambda, datos) + priori_log(lambda)
+log_posterior <- function(lambda, datos) {
+  log_verosimilitud(datos, lambda) + log_priori(lambda)
 }
 
 # Algoritmo de Metropolis-Hastings
-metropolis_hastings <- function(datos, n_iteraciones = 10000) {
+metropolis_hastings <- function(datos, n_iteraciones) {
   cadena_lambda <- numeric(n_iteraciones)
   cadena_lambda[1] <- runif(1, min = min(datos), max = max(datos))
   aceptaciones <- 0
@@ -294,8 +294,8 @@ metropolis_hastings <- function(datos, n_iteraciones = 10000) {
     lambda_propuesto <- rnorm(1, mean = lambda_actual, sd = 1)
     
     if (lambda_propuesto > 0) {
-      log_alpha <- posterior_log(lambda_propuesto, datos) - posterior_log(lambda_actual, datos)
-      alpha <- exp(log_alpha)
+      log_alpha <- log_posterior(lambda_propuesto, datos) - log_posterior(lambda_actual, datos)
+      alpha <- min(1, exp(log_alpha))
       
       if (runif(1) < alpha) {
         cadena_lambda[i] <- lambda_propuesto
@@ -308,7 +308,8 @@ metropolis_hastings <- function(datos, n_iteraciones = 10000) {
     }
   }
   
-  list(cadena = cadena_lambda, tasa_aceptacion = aceptaciones / n_iteraciones)
+  # Quema los primeros 1000 valores (burn in)
+  list(cadena = cadena_lambda[-(1:1000)], tasa_aceptacion = aceptaciones / n_iteraciones)
 }
 
 # Ejecuta el algoritmo con n = 10000
