@@ -76,6 +76,7 @@ plot(1:n,acumulado,col="blue",type="l",ylab="Aproximación",xlab="Iteraciones")
 abline(h=integral_simpson$value,col="red",lwd=1)
 ```
 
+
 # Pregunta 2
 
 ## a) Esperanza de $f_L(L)$
@@ -122,6 +123,7 @@ valor_esperado <- mean(Y2)
 print(c("Valor esperado de la pérdida de los valores extremos:", valor_esperado))
 ```
 
+
 # Pregunta 3
 La siguiente muestra indica el tiempo en días entre cada accidente laboral de una empresa:
 $$2.72, 1.93, 1.76, 0.49, 6.12, 0.43, 4.01, 1.71, 2.01, 5.96$$
@@ -142,7 +144,7 @@ Puesto así, nuestra función a posteriori de $\lambda$ es una $\Gamma(12, 28.14
 Al maximizar nuestra función $\frac{f(x)}{g(x)}$, tomando a $g \sim exp(1)$
 ```{r}
 maxc <- 10/27.14
-c <- dgamma(maxc, 11, 27.14)
+c <- dgamma(maxc, shape = 11, rate = 27.14)
 ```
 
 ```{r}
@@ -200,6 +202,7 @@ Podemos aceptar esta hipótesis ya que se encuentra dentro del intervalo de cred
 ```{r}
 quantile(x, c(0.175, 0.825))
 ```
+
 
 # Pregunta 4
 Sea $f(x) = \exp\left(\frac{\sin(10x)}{10\cos(x)}\right)$, para $x \in [0,10]$
@@ -270,7 +273,7 @@ beta <- 2
 
 # Función de densidad de la priori Gamma
 log_priori <- function(lambda) {
-  dgamma(lambda, shape = alpha_p, rate = (1 / beta), log = TRUE)
+  dgamma(lambda, shape = alpha, rate = 3, log = TRUE)
 }
 
 # Función de densidad de Poisson para los siniestros
