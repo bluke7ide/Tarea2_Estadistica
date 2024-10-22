@@ -267,13 +267,9 @@ Construya un algoritmo de Metropolis-Hastings que muestree el parámetro $\lambd
 # Muestra de siniestros observados
 siniestros <- c(4, 2, 5, 6, 3, 4, 7, 5, 6, 4)
 
-# Parámetros para la función Gamma (priori)
-alpha <- 3
-beta <- 2
-
 # Función de densidad de la priori Gamma
 log_priori <- function(lambda) {
-  dgamma(lambda, shape = alpha, rate = 3, log = TRUE)
+  dgamma(lambda, shape = 3, rate = 2, log = TRUE)
 }
 
 # Función de densidad de Poisson para los siniestros
@@ -288,6 +284,7 @@ log_posterior <- function(lambda, datos) {
 
 # Algoritmo de Metropolis-Hastings
 metropolis_hastings <- function(datos, n_iteraciones) {
+  
   cadena_lambda <- numeric(n_iteraciones)
   cadena_lambda[1] <- runif(1, min = min(datos), max = max(datos))
   aceptaciones <- 0
@@ -319,6 +316,9 @@ metropolis_hastings <- function(datos, n_iteraciones) {
 resultado <- metropolis_hastings(siniestros, n_iteraciones = 10000)
 cadena_lambda <- resultado$cadena
 tasa_aceptacion <- resultado$tasa_aceptacion
+
+promedios <- cumsum(cadena_lambda) / (1:length(cadena_lambda))
+promedios[length(promedios)]
 ```
 
 
