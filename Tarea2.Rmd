@@ -144,7 +144,7 @@ Puesto así, nuestra función a posteriori de $\lambda$ es una $\Gamma(12, 28.14
 Al maximizar nuestra función $\frac{f(x)}{g(x)}$, tomando a $g \sim exp(1)$
 ```{r}
 maxc <- 10/27.14
-c <- dgamma(maxc, shape = 11, rate = 27.14)
+c <- dgamma(maxc, shape = 11, scale = 27.14)
 ```
 
 ```{r}
@@ -269,7 +269,7 @@ siniestros <- c(4, 2, 5, 6, 3, 4, 7, 5, 6, 4)
 
 # Función de densidad de la priori Gamma
 log_priori <- function(lambda) {
-  dgamma(lambda, shape = 3, rate = 2, log = TRUE)
+  dgamma(lambda, shape = 3, scale = 2, log = TRUE)
 }
 
 # Función de densidad de Poisson para los siniestros
