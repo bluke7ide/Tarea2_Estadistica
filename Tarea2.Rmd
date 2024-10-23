@@ -76,18 +76,16 @@ plot(1:n,acumulado,col="blue",type="l",ylab="Aproximación",xlab="Iteraciones")
 abline(h=integral_simpson$value,col="red",lwd=1)
 ```
 
-
 # Pregunta 2
 
-## a) Esperanza de $f_L(L)$
 El valor esperado de una función de pérdida en una póliza de seguros, donde la pérdida $L$, sigue una distribución exponencial con parámetro $\lambda = 1$. Queremos estimar el valor esperando de la siguiente función: 
 $$E[L] = \int_0^\infty Lf_L(L) \ dL$$
 Donde $f_L(L)$ es la función de densidad de la distribución de la pérdida $L$
 
-## b) Programar $f_L(L)$
+## a) Programar $f_L(L)$
 Programe la función de pérdida $f_L(L)$ según el enunciado
 
-## c) Muestreo por importancia
+## b) Muestreo por importancia
 Para muestrear valores extremos de nuestra muestra, podemos usar una distribución auxiliar
 $$g(L) \sim N(3,4)$$
 Implemente un muestreo por importancia con esta función auxiliar, para $n = 10^4$ e indique el valor esperado de la pérdida de los valores extremos, usando como semilla _set.seed(54321)_
@@ -139,29 +137,44 @@ n_acc_lab <- length(mas_acc_lab)
 m_acc_lab <- s_acc_lab/n_acc_lab
 ```
 
-Puesto así, nuestra función a posteriori de $\lambda$ es una $\Gamma(12, 28.14)$
-
-Al maximizar nuestra función $\frac{f(x)}{g(x)}$, tomando a $g \sim exp(1)$
+Puesto así, nuestra función de verosimilitud de $\lambda$ es una $\Gamma(11, 27.14)$
+Ahora comprobamos que podemos usar la función dgamma para nuestra verosimilitud
+```{r}
+vero <- function(x) (exp(-27.14*x)*x^10)/6.165801e-10 # constante de integracion
+dgamma1 <- function(x) dgamma(x, 11, 27.14)
+xx <- seq(0,1,length.out = 1000)
+df <- data.frame(
+  x = xx,
+  vero = vero(xx),
+  gamma = dgamma1(xx)
+)
+ggplot(df, aes(x = x)) +
+  geom_line(aes(y = vero, color = 'red'), alpha = 1, linewidth = 3) +
+  geom_point(aes(y = gamma), alpha = 0.5)
+```
+Y nuestra función posteriori de $\lambda$ es una $\Gamma(12, 28.14)$
+Al maximizar nuestra función $\frac{f(x)}{g(x)}$, tomando a $g \sim \Gamma(2,1)$
 ```{r}
 maxc <- 10/27.14
-c <- dgamma(maxc, shape = 11, scale = 27.14)
+c <- dgamma(maxc, 12, 27.14)
 ```
 
 ```{r}
 U <- runif(10^4)
-x <- rexp(10^4,1)
+x <- rgamma(10^4,2,1)
 ngen <- length(x)
 dgamma1 <- Vectorize(function(x) dgamma(x, 11, 27.14))
 DIB <- dgamma1(x)
 for(i in 1:10^4){
   while((U[i]*c) >= (DIB[i])){ 
     U[i] <- runif(1)
-    x[i] <- rexp(1)
+    x[i] <- rgamma(1, 2, 1)
     DIB[i] <- dgamma1(x[i])
     ngen <- ngen+1
   }
 }
-(lambda <- mean(x))
+lambda <- mean(x)
+print(paste("El valor estimado de lambda es", round(lambda, digits = 4)))
 ```
 
 ## b) Distribución de 𝜆
@@ -170,14 +183,13 @@ Construya el histograma para la distribución de $\lambda$
 ```{r}
 fig <- ggplot(data.frame(x = x), aes(x = x)) +
   geom_histogram(aes(y = after_stat(density), color = "Histograma"), bins = 40, fill = "lightblue", alpha = 0.5) +
-  stat_function(fun = function(x) dgamma(x, 11, 28.14), aes(color = "Densidad Teórica"), size = 1.5) +
+  stat_function(fun = function(x) dgamma(x, 12, 28.14), aes(color = "Densidad Teórica"), size = 1.5) +
   labs(title = "Histograma de Lambda", x = "x", y = "Density", color = "Leyenda", fill = " ") +
   scale_color_manual(values = c("cyan", "black")) +
   theme(legend.position = 'bottom') +
   theme_minimal() 
 fig %>% ggplotly()
 ```
-
 
 ## c) Generaciones
 Indique el número de generaciones, número medio de generaciones y proporción de rechazos de la estimación realizada
@@ -198,9 +210,9 @@ quantile(x, c(0.005, 0.995))
 ## e) Hipótesis
 Aceptaría o rechazaría la hipótesis que $\lambda = 0.5$, basados en el intervalo de credibilidad anterior. 
 
-Podemos aceptar esta hipótesis ya que se encuentra dentro del intervalo de credibilidad anterior. Solo la rechazamos cuando tenemos un intervalo de credibilidad de 75%
+Podemos aceptar esta hipótesis ya que se encuentra dentro del intervalo de credibilidad anterior y bastante cerca de nuestro valor lambda. Solo la rechazamos cuando tenemos un intervalo de credibilidad aproximado de 50%
 ```{r}
-quantile(x, c(0.175, 0.825))
+quantile(x, c(0.25, 0.75))
 ```
 
 
@@ -240,7 +252,7 @@ resim <- function(f, alpha=0.5, s0=0, niter,mini=-Inf,maxi=Inf) {
 ```{r}
 f <- function(x) exp(sin(10*x)/(10*cos(x)))
 Resultado <-resim(f,0.1,5,10000,0,10) # 10e3 puesto se quedaba varado en algunas
-Resultado$r
+print(paste("El valor del mínimo global en [0,10] es", round(Resultado$r,digits = 4)))
 ```
 
 
