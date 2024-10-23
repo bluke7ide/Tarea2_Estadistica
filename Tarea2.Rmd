@@ -318,7 +318,7 @@ cadena_lambda <- resultado$cadena
 tasa_aceptacion <- resultado$tasa_aceptacion
 
 promedios <- cumsum(cadena_lambda) / (1:length(cadena_lambda))
-promedios[length(promedios)]
+cat("La estimación de lambda es:", promedios[length(promedios)])
 ```
 
 
@@ -354,7 +354,6 @@ acf(cadena_lambda, main = "Autocorrelación de la muestra MCMC")
 El gráfico de la convergencia (promedios ergódicos) de la media de la muestra MCMC del algoritmo.
 
 ```{r}
-promedios <- cumsum(cadena_lambda) / (1:length(cadena_lambda))
 plot(promedios, type = "l", 
      main = "Convergencia (Promedios ergódicos)", 
      ylab = "Promedio acumulado de lambda", xlab = "Iteraciones")
